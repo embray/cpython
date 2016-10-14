@@ -109,6 +109,10 @@
 #define LANDMARK L"os.py"
 #endif
 
+#ifndef EXE_SUFFIX
+#define EXE_SUFFIX L".exe"
+#endif
+
 static wchar_t prefix[MAXPATHLEN+1];
 static wchar_t exec_prefix[MAXPATHLEN+1];
 static wchar_t progpath[MAXPATHLEN+1];
@@ -374,6 +378,26 @@ search_for_prefix(wchar_t *argv0_path, wchar_t *home, wchar_t *_prefix,
 }
 
 
+#ifdef __CYGWIN__
+
+static void
+add_exe_suffix(wchar_t *progpath)
+{
+    wchar_t *suffix_start;
+
+    suffix_start = progpath + wcslen(progpath) - wcslen(EXE_SUFFIX);
+
+    /* Already have an .exe suffix */
+    if (wcsncasecmp(EXE_SUFFIX, suffix_start, wcslen(EXE_SUFFIX)) == 0) {
+        return;
+    }
+
+    wcscat(progpath, EXE_SUFFIX);
+}
+
+#endif /* __CYGWIN__ */
+
+
 /* search_for_exec_prefix requires that argv0_path be no more than
    MAXPATHLEN bytes long.
 */
@@ -563,6 +587,11 @@ calculate_path(void)
     PyMem_RawFree(path_buffer);
     if (progpath[0] != SEP && progpath[0] != '\0')
         absolutize(progpath);
+
+#ifdef __CYGWIN__
+    add_exe_suffix(progpath);
+#endif
+
     wcsncpy(argv0_path, progpath, MAXPATHLEN);
     argv0_path[MAXPATHLEN] = '\0';
 
