@@ -1,5 +1,6 @@
 """Tests for distutils.command.sdist."""
 import os
+import sys
 import tarfile
 import unittest
 import warnings
@@ -19,6 +20,11 @@ try:
     import pwd
     UID_GID_SUPPORT = True
 except ImportError:
+    UID_GID_SUPPORT = False
+
+if sys.platform == 'cygwin':
+    # The tests that use UID_GID_SUPPORT assume 0 is a valid uid/gid which is
+    # not necessarily (or even likely) the case on Cygwin
     UID_GID_SUPPORT = False
 
 from distutils.command.sdist import sdist, show_formats

@@ -22,6 +22,11 @@ try:
 except ImportError:
     UID_GID_SUPPORT = False
 
+if sys.platform == 'cygwin':
+    # The tests that use UID_GID_SUPPORT assume 0 is a valid uid/gid which is
+    # not necessarily (or even likely) the case on Cygwin
+    UID_GID_SUPPORT = False
+
 try:
     import zipfile
     ZIP_SUPPORT = True
