@@ -6,6 +6,7 @@ import io
 import operator
 import os
 import stat
+import sys
 import unittest
 import dbm.dumb as dumbdbm
 from test import support
@@ -54,6 +55,13 @@ class DumbDBMTestCase(unittest.TestCase):
             # Windows only supports setting the read-only attribute.
             # This shouldn't fail, but doesn't work like Unix either.
             expected_mode = 0o666
+        elif sys.platform == 'cygwin':
+            # Cygwin supports a wider range of POSIX permissions by
+            # mapping them to Windows ACLs, but there are some pathological
+            # POSIX permissions that cannot be correctly represented, and
+            # 0x635 is one of them (it's impossible to give 'executable'
+            # to all users without giving it to the current user)
+            expected_mode = 0o735
 
         import stat
         st = os.stat(_fname + '.dat')
