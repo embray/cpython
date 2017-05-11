@@ -416,9 +416,13 @@ class BasicSocketTests(unittest.TestCase):
             del ss
         self.assertEqual(wr(), None)
 
+    @unittest.skipIf(sys.platform == 'cygwin', 'known failure on Cygwin')
     def test_wrapped_unconnected(self):
         # Methods on an unconnected SSLSocket propagate the original
         # OSError raise by the underlying socket object.
+        # This test is broken on Cygwin since even with a normal socket
+        # recv() on an unconnected socket will block rather than return
+        # ENOTCONN; this is a known issue with Cygwin
         s = socket.socket(socket.AF_INET)
         with test_wrap_socket(s) as ss:
             self.assertRaises(OSError, ss.recv, 1)
@@ -1690,6 +1694,7 @@ class SimpleBackgroundTests(unittest.TestCase):
             self.assertTrue(cert)
 
     @unittest.skipIf(os.name == "nt", "Can't use a socket as a file under Windows")
+    @unittest.skipIf(sys.platform == 'cygwin', 'known failure on Cygwin')
     def test_makefile_close(self):
         # Issue #5238: creating a file-like object with makefile() shouldn't
         # delay closing the underlying "real socket" (here tested with its
@@ -1705,6 +1710,9 @@ class SimpleBackgroundTests(unittest.TestCase):
         ss.close()
         gc.collect()
         with self.assertRaises(OSError) as e:
+            # This test is broken on Cygwin since even with a normal socket
+            # recv() on an unconnected socket will block rather than return
+            # ENOTCONN; this is a known issue with Cygwin
             os.read(fd, 0)
         self.assertEqual(e.exception.errno, errno.EBADF)
 
