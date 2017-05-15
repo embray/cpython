@@ -1,4 +1,5 @@
 """Support code for distutils test cases."""
+import atexit
 import os
 import sys
 import shutil
@@ -10,6 +11,21 @@ from copy import deepcopy
 from distutils import log
 from distutils.log import DEBUG, INFO, WARN, ERROR, FATAL
 from distutils.core import Distribution
+
+
+_tempdirs = []
+
+def _cleanup_tempdirs():
+    """
+    Only used on Windows/Cygwin--cleanup temp dirs used by testing only at the
+    end of the test run, as accidental deletion of some files (particularly
+    DLLs) can cause errors.
+    """
+
+    for d in _tempdirs:
+        shutil.rmtree(d, True)
+
+atexit.register(_cleanup_tempdirs)
 
 
 class LoggingSilencer(object):
@@ -65,7 +81,10 @@ class TempdirManager(object):
         super().tearDown()
         while self.tempdirs:
             d = self.tempdirs.pop()
-            shutil.rmtree(d, os.name in ('nt', 'cygwin'))
+            if sys.platform in ('win32', 'cygwin'):
+                _tempdirs.append(d)
+            else:
+                shutil.rmtree(d)
 
     def mkdtemp(self):
         """Create a temporary directory that will be cleaned up.
