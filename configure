@@ -5882,6 +5882,7 @@ $as_echo "#define Py_ENABLE_SHARED 1" >>confdefs.h
     CYGWIN*)
           LDLIBRARY='libpython$(LDVERSION).dll.a'
           DLLLIBRARY='libpython$(LDVERSION).dll'
+          RUNSHARED=PATH=\"`pwd`${PATH:+:${PATH}}\"
           ;;
     SunOS*)
 	  LDLIBRARY='libpython$(LDVERSION).so'

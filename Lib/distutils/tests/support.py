@@ -207,4 +207,7 @@ def fixup_build_ext(cmd):
                 cmd.library_dirs = []
             else:
                 name, equals, value = runshared.partition('=')
+                # Strip quotes which may be used on some platforms (namely
+                # Cygwin) where paths might contain quotes
+                value = value.strip("'\"")
                 cmd.library_dirs = [d for d in value.split(os.pathsep) if d]

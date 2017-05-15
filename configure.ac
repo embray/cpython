@@ -1101,6 +1101,7 @@ if test $enable_shared = "yes"; then
     CYGWIN*)
           LDLIBRARY='libpython$(LDVERSION).dll.a'
           DLLLIBRARY='libpython$(LDVERSION).dll'
+          RUNSHARED=PATH=\"`pwd`${PATH:+:${PATH}}\"
           ;;
     SunOS*)
 	  LDLIBRARY='libpython$(LDVERSION).so'
