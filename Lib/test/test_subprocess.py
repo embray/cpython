@@ -828,6 +828,7 @@ class ProcessTestCase(BaseTestCase):
         string_to_write = b"a" * support.PIPE_MAX_SIZE
         (stdout, stderr) = p.communicate(string_to_write)
         self.assertEqual(stdout, string_to_write)
+        self.assertEqual(stderr, b"x" * support.PIPE_MAX_SIZE)
 
     def test_writes_before_communicate(self):
         # stdin.write before communicate()

@@ -1514,10 +1514,13 @@ class Popen(object):
             with _PopenSelector() as selector:
                 if self.stdin and input:
                     selector.register(self.stdin, selectors.EVENT_WRITE)
+                    os.set_blocking(self.stdin.fileno(), False)
                 if self.stdout:
                     selector.register(self.stdout, selectors.EVENT_READ)
+                    os.set_blocking(self.stdout.fileno(), False)
                 if self.stderr:
                     selector.register(self.stderr, selectors.EVENT_READ)
+                    os.set_blocking(self.stderr.fileno(), False)
 
                 while selector.get_map():
                     timeout = self._remaining_time(endtime)
@@ -1526,9 +1529,6 @@ class Popen(object):
 
                     ready = selector.select(timeout)
                     self._check_timeout(endtime, orig_timeout)
-
-                    # XXX Rewrite these to use non-blocking I/O on the file
-                    # objects; they are no longer using C stdio!
 
                     for key, events in ready:
                         if key.fileobj is self.stdin:
