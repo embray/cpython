@@ -536,8 +536,11 @@ calculate_path(void)
      * other way to find a directory to start the search from.  If
      * $PATH isn't exported, you lose.
      */
-    if (wcschr(prog, SEP))
+    if (wcschr(prog, SEP)) {
         wcsncpy(progpath, prog, MAXPATHLEN);
+#ifdef __CYGWIN__
+        add_exe_suffix(progpath);
+#endif
 #ifdef __APPLE__
      /* On Mac OS X, if a script uses an interpreter of the form
       * "#!/opt/python2.3/bin/python", the kernel only passes "python"
@@ -549,7 +552,7 @@ calculate_path(void)
       * will fail if a relative path was used. but in that case,
       * absolutize() should help us out below
       */
-    else if(0 == _NSGetExecutablePath(execpath, &nsexeclength) && execpath[0] == SEP) {
+    } else if(0 == _NSGetExecutablePath(execpath, &nsexeclength) && execpath[0] == SEP) {
         size_t r = mbstowcs(progpath, execpath, MAXPATHLEN+1);
         if (r == (size_t)-1 || r > MAXPATHLEN) {
             /* Could not convert execpath, or it's too long. */
@@ -557,7 +560,7 @@ calculate_path(void)
         }
     }
 #endif /* __APPLE__ */
-    else if (path) {
+    } else if (path) {
         while (1) {
             wchar_t *delim = wcschr(path, DELIM);
 
@@ -572,6 +575,9 @@ calculate_path(void)
                 wcsncpy(progpath, path, MAXPATHLEN);
 
             joinpath(progpath, prog);
+#ifdef __CYGWIN__
+            add_exe_suffix(progpath);
+#endif
             if (isxfile(progpath))
                 break;
 
