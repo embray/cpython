@@ -227,7 +227,7 @@ http://cvsweb.netbsd.org/bsdweb.cgi/src/lib/libc/net/getaddrinfo.c.diff?r1=1.82&
 #endif
 
 
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__CYGWIN__)
 # include <sys/ioctl.h>
 #endif
 
