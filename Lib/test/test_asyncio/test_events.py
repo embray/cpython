@@ -471,6 +471,7 @@ class EventLoopTestsMixin:
             self._basetest_sock_recv_into(httpd, sock)
 
     @unittest.skipUnless(hasattr(socket, 'AF_UNIX'), 'No UNIX Sockets')
+    @unittest.skipIf(sys.platform == 'cygwin', 'cygwin has known bug')
     def test_unix_sock_client_ops(self):
         with test_utils.run_test_unix_server() as httpd:
             sock = socket.socket(socket.AF_UNIX)
@@ -970,6 +971,7 @@ class EventLoopTestsMixin:
         return server, path
 
     @unittest.skipUnless(hasattr(socket, 'AF_UNIX'), 'No UNIX Sockets')
+    @unittest.skipIf(sys.platform == 'cygwin', 'cygwin has known bug')
     def test_create_unix_server(self):
         proto = MyProto(loop=self.loop)
         server, path = self._make_unix_server(lambda: proto)
@@ -1067,6 +1069,7 @@ class EventLoopTestsMixin:
 
     @unittest.skipIf(ssl is None, 'No ssl module')
     @unittest.skipUnless(hasattr(socket, 'AF_UNIX'), 'No UNIX Sockets')
+    @unittest.skipIf(sys.platform == 'cygwin', 'cygwin has known bug')
     def test_create_unix_server_ssl(self):
         proto = MyProto(loop=self.loop)
         server, path = self._make_ssl_unix_server(
@@ -1135,6 +1138,7 @@ class EventLoopTestsMixin:
 
     @unittest.skipIf(ssl is None, 'No ssl module')
     @unittest.skipUnless(hasattr(socket, 'AF_UNIX'), 'No UNIX Sockets')
+    @unittest.skipIf(sys.platform == 'cygwin', 'cygwin has known bug')
     def test_create_unix_server_ssl_verify_failed(self):
         proto = MyProto(loop=self.loop)
         server, path = self._make_ssl_unix_server(
@@ -1202,6 +1206,7 @@ class EventLoopTestsMixin:
 
     @unittest.skipIf(ssl is None, 'No ssl module')
     @unittest.skipUnless(hasattr(socket, 'AF_UNIX'), 'No UNIX Sockets')
+    @unittest.skipIf(sys.platform == 'cygwin', 'cygwin has known bug')
     def test_create_unix_server_ssl_verified(self):
         proto = MyProto(loop=self.loop)
         server, path = self._make_ssl_unix_server(
