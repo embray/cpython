@@ -9,16 +9,25 @@ branches:
 cache:
   - externals -> PCbuild\*
 build_script:
-- cmd: PCbuild\build.bat -e
-- cmd: PCbuild\win32\python.exe -m test.pythoninfo
+- ps: |
+    if ($env:PLATFORM -eq "Win32") {
+        PCbuild\build.bat -e
+        PCbuild\win32\python.exe -m test.pythoninfo
+    } else if ($env:PLATFORM -eq "Cygwin64") {
+        C:\Cygwin64\bash.exe -l -c './configure && make -s -j4'
+        C:\Cygwin64\bash.exe -l -c './python.exe -m test.pythoninfo'
+    }
 test_script:
-- cmd: PCbuild\rt.bat -q -uall -u-cpu -rwW --slowest --timeout=1200 --fail-env-changed -j0
+- ps: |
+    if ($env:PLATFORM -eq "Win32") {
+        PCbuild\rt.bat -q -uall -u-cpu -rwW --slowest --timeout=1200 --fail-env-changed -j0
+    }
 environment:
   HOST_PYTHON: C:\Python36\python.exe
 image:
 - Visual Studio 2017
 platform:
-    - Win32
+#    - Win32
     - Cygwin64
 matrix:
     fast_finish: true
