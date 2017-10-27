@@ -5,6 +5,7 @@ branches:
     - master
     - /\d\.\d/
     - buildbot-custom
+    - appveyor-cygwin
 cache:
   - externals -> PCbuild\*
 build_script:
@@ -16,6 +17,13 @@ environment:
   HOST_PYTHON: C:\Python36\python.exe
 image:
 - Visual Studio 2017
+platform:
+    - Win32
+    - Cygwin64
+matrix:
+    fast_finish: true
+    allow_failures:
+        - platform: Cygwin64
 
 # Only trigger AppVeyor if actual code or its configuration changes
 only_commits:
