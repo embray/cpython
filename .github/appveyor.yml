@@ -24,6 +24,7 @@ build_script:
         PCbuild\build.bat -e
         PCbuild\win32\python.exe -m test.pythoninfo
     } elseif ($env:PLATFORM -eq "Cygwin64") {
+        Cygwin cygcheck -s
         Cygwin ./configure
         Cygwin make -j4
         Cygwin ./python.exe -m test.pythoninfo
