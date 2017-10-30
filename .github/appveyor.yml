@@ -31,7 +31,7 @@ test_script:
         . .github\cygwin.ps1
         # Basically the same test command that is run on Linux for the
         # Travis-CI builds, but without coverage tests
-        Cygwin ./python.exe -m test --fail-env-changed -uall,-cpu -x test_multiprocessing_fork -x test_multiprocessing_forkserver -x test_multiprocessing_spawn -x test_concurrent_futures
+        Cygwin ./python.exe -m test --fail-env-changed "-uall,-cpu" -x test_multiprocessing_fork -x test_multiprocessing_forkserver -x test_multiprocessing_spawn -x test_concurrent_futures
     }
 environment:
   HOST_PYTHON: C:\Python36\python.exe
