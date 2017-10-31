@@ -32,7 +32,7 @@ test_script:
         # Basically the same test command that is run on Linux for the
         # Travis-CI builds, but without coverage tests
         # Skip test_asyncio as well, as it appears to be hanging on AppVeyor
-        Cygwin ./python.exe -m test -v --fail-env-changed "-uall,-cpu" -x test_asyncio -x test_multiprocessing_fork -x test_multiprocessing_forkserver -x test_multiprocessing_spawn -x test_concurrent_futures
+        Cygwin ./python.exe -m test -w --fail-env-changed "-uall,-cpu" -x test_asyncio -x test_multiprocessing_fork -x test_multiprocessing_forkserver -x test_multiprocessing_spawn -x test_concurrent_futures
     }
 environment:
   HOST_PYTHON: C:\Python36\python.exe
