@@ -33,6 +33,7 @@ class BaseTest(unittest.TestCase):
 
     def setUp(self):
         self.env_dir = os.path.realpath(tempfile.mkdtemp())
+        self.old_env = os.environ.copy()
         if os.name == 'nt':
             self.bindir = 'Scripts'
             self.lib = ('Lib',)
@@ -45,10 +46,18 @@ class BaseTest(unittest.TestCase):
             executable = os.environ['__PYVENV_LAUNCHER__']
         else:
             executable = sys.executable
+        if sys.platform == 'cygwin':
+            # Need to insert . on PATH in order for the build .dll to be
+            # found
+            os.environ['PATH'] = '{}{}{}'.format(
+                    os.path.dirname(sys.executable), os.pathsep,
+                    os.environ['PATH'])
         self.exe = os.path.split(executable)[-1]
 
     def tearDown(self):
         rmtree(self.env_dir)
+        os.environ.clear()
+        os.environ.update(self.old_env)
 
     def run_with_capture(self, func, *args, **kwargs):
         with captured_stdout() as output:
