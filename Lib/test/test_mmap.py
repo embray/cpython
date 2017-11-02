@@ -239,10 +239,18 @@ class MmapTests(unittest.TestCase):
             # Try writing with PROT_EXEC and without PROT_WRITE
             prot = mmap.PROT_READ | getattr(mmap, 'PROT_EXEC', 0)
             with open(TESTFN, "r+b") as f:
-                m = mmap.mmap(f.fileno(), mapsize, prot=prot)
-                self.assertRaises(TypeError, m.write, b"abcdef")
-                self.assertRaises(TypeError, m.write_byte, 0)
-                m.close()
+                try:
+                    m = mmap.mmap(f.fileno(), mapsize, prot=prot)
+                except PermissionError:
+                    # On some platforms trying to mmap with PROT_EXEC a file
+                    # that does not have executable permissions (e.g. is on a
+                    # filesystem mounted noexec) will return EPERM
+                    pass
+                else:
+                    self.assertRaises(TypeError, m.write, b"abcdef")
+                    self.assertRaises(TypeError, m.write_byte, 0)
+                finally:
+                    m.close()
 
     def test_bad_file_desc(self):
         # Try opening a bad file descriptor...
