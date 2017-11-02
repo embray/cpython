@@ -96,7 +96,7 @@ class ImportTests(unittest.TestCase):
             from select import i_dont_exist
         self.assertEqual(cm.exception.name, 'select')
         self.assertEqual(cm.exception.path, select.__file__)
-        self.assertRegex(str(cm.exception), r"cannot import name 'i_dont_exist' from 'select' \(.*\.(so|pyd)\)")
+        self.assertRegex(str(cm.exception), r"cannot import name 'i_dont_exist' from 'select' \(.*\.(so|pyd|dll)\)")
 
     def test_from_import_missing_attr_has_name(self):
         with self.assertRaises(ImportError) as cm:
