@@ -121,12 +121,16 @@ class PosixTester(unittest.TestCase):
             except KeyError:
                 # the current UID may not have a pwd entry
                 raise unittest.SkipTest("need a pwd entry")
-            try:
-                posix.initgroups(name, 13)
-            except OSError as e:
-                self.assertEqual(e.errno, errno.EPERM)
-            else:
-                self.fail("Expected OSError to be raised by initgroups")
+
+            # On cygwin the the os.getuid() != 0 test does not guarantee lack
+            # of 'root' privileges, so this test does not make sense
+            if sys.platform != 'cygwin':
+                try:
+                    posix.initgroups(name, 13)
+                except OSError as e:
+                    self.assertEqual(e.errno, errno.EPERM)
+                else:
+                    self.fail("Expected OSError to be raised by initgroups")
 
     @unittest.skipUnless(hasattr(posix, 'statvfs'),
                          'test needs posix.statvfs()')
@@ -911,7 +915,10 @@ class PosixTester(unittest.TestCase):
             ret = idg.close()
 
         try:
-            idg_groups = set(int(g) for g in groups.split())
+            # If gid_t is an unsigned type `id` can print 4294967295 instead of
+            # -1
+            idg_groups = set(int(g.replace(str(2**32 - 1), '-1'))
+                             for g in groups.split())
         except ValueError:
             idg_groups = set()
         if ret is not None or not idg_groups:
@@ -1182,8 +1189,9 @@ class PosixTester(unittest.TestCase):
 
         # POSIX states that calling sched_setparam() or sched_setscheduler() on
         # a process with a scheduling policy other than SCHED_FIFO or SCHED_RR
-        # is implementation-defined: NetBSD and FreeBSD can return EINVAL.
-        if not sys.platform.startswith(('freebsd', 'netbsd')):
+        # is implementation-defined: NetBSD and FreeBSD can return EINVAL;
+        # Cygwin returns ENOSYS
+        if not sys.platform.startswith(('freebsd', 'netbsd', 'cygwin')):
             try:
                 posix.sched_setscheduler(0, mine, param)
                 posix.sched_setparam(0, param)
