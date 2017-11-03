@@ -40,8 +40,14 @@ class DumbDBMTestCase(unittest.TestCase):
         self.read_helper(f)
         f.close()
 
+    # Cygwin supports a wider range of POSIX permissions by mapping them to
+    # Windows ACLs, but there are some pathological POSIX permissions that
+    # cannot be correctly represented, and 0x635 is one of them (it's
+    # impossible to give 'executable' to all users without giving it to the
+    # current user). And this assumes ACL permissions are enabled at all.
     @unittest.skipUnless(hasattr(os, 'umask'), 'test needs os.umask()')
     @unittest.skipUnless(hasattr(os, 'chmod'), 'test needs os.chmod()')
+    @unittest.skipIf(sys.platform == 'cygwin', 'test unreliable on Cygwin')
     def test_dumbdbm_creation_mode(self):
         try:
             old_umask = os.umask(0o002)
@@ -55,13 +61,6 @@ class DumbDBMTestCase(unittest.TestCase):
             # Windows only supports setting the read-only attribute.
             # This shouldn't fail, but doesn't work like Unix either.
             expected_mode = 0o666
-        elif sys.platform == 'cygwin':
-            # Cygwin supports a wider range of POSIX permissions by
-            # mapping them to Windows ACLs, but there are some pathological
-            # POSIX permissions that cannot be correctly represented, and
-            # 0x635 is one of them (it's impossible to give 'executable'
-            # to all users without giving it to the current user)
-            expected_mode = 0o735
 
         import stat
         st = os.stat(_fname + '.dat')
