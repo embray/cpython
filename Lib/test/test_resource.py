@@ -111,6 +111,7 @@ class ResourceTest(unittest.TestCase):
             pass
 
     # Issue 6083: Reference counting bug
+    @unittest.skipIf(sys.platform == 'cygwin', 'not supported on Cygwin')
     def test_setrusage_refcount(self):
         try:
             limits = resource.getrlimit(resource.RLIMIT_CPU)
