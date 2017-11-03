@@ -441,8 +441,11 @@ class BaseSelectorTestCase(unittest.TestCase):
 class ScalableSelectorMixIn:
 
     # see issue #18963 for why it's skipped on older OS X versions
+    # a bug on cygwin prevents creation of as many sockets as there are
+    # available FDs, but does not raise an error immediately
     @support.requires_mac_ver(10, 5)
     @unittest.skipUnless(resource, "Test needs resource module")
+    @unittest.skipIf(sys.platfrm == 'cygwin', 'cygwin has known bug')
     def test_above_fd_setsize(self):
         # A scalable implementation should have no problem with more than
         # FD_SETSIZE file descriptors. Since we don't know the value, we just
