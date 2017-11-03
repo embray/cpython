@@ -114,8 +114,9 @@ class PwdTest(unittest.TestCase):
             self.assertRaises(KeyError, pwd.getpwuid, fakeuid)
 
         # -1 shouldn't be a valid uid because it has a special meaning in many
-        # uid-related functions
-        if not support.is_android:
+        # uid-related functions; on Cygwin UID -1 is the special fake account
+        # Unknown+User
+        if not (support.is_android or sys.platform == 'cygwin'):
             self.assertRaises(KeyError, pwd.getpwuid, -1)
         # should be out of uid_t range
         self.assertRaises(KeyError, pwd.getpwuid, 2**128)
