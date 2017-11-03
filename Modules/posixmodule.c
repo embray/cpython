@@ -5474,8 +5474,17 @@ os_sched_getscheduler_impl(PyObject *module, pid_t pid)
     int policy;
 
     policy = sched_getscheduler(pid);
+#ifdef __CYGWIN__
+    /* Cygwin's sched_getscheduler is buggy--it returns ESRCH for invalid
+     * pids instead of setting errno and returning -1 */
+    if (policy == ESRCH) {
+        errno = ESRCH;
+        return posix_error();
+    }
+#else
     if (policy < 0)
         return posix_error();
+#endif
     return PyLong_FromLong(policy);
 }
 #endif /* HAVE_SCHED_SETSCHEDULER */
@@ -8867,6 +8876,11 @@ os_posix_fallocate_impl(PyObject *module, int fd, Py_off_t offset,
 {
     int result;
     int async_err = 0;
+#ifdef __CYGWIN__
+    /* Cygwin's posix_fallocate is buggy--it sets errno instead of returning the
+     * error */
+    errno = 0;
+#endif
 
     do {
         Py_BEGIN_ALLOW_THREADS
@@ -8880,6 +8894,9 @@ os_posix_fallocate_impl(PyObject *module, int fd, Py_off_t offset,
     if (async_err)
         return NULL;
 
+#ifdef __CYGWIN__
+    if (!errno)
+#endif
     errno = result;
     return posix_error();
 }
@@ -8915,6 +8932,12 @@ os_posix_fadvise_impl(PyObject *module, int fd, Py_off_t offset,
     int result;
     int async_err = 0;
 
+#ifdef __CYGWIN__
+    /* Cygwin's posix_fadvise is buggy--it sets errno instead of returning the
+     * error */
+    errno = 0;
+#endif
+
     do {
         Py_BEGIN_ALLOW_THREADS
         result = posix_fadvise(fd, offset, length, advice);
@@ -8927,6 +8950,9 @@ os_posix_fadvise_impl(PyObject *module, int fd, Py_off_t offset,
     if (async_err)
         return NULL;
 
+#ifdef __CYGWIN__
+    if (!errno)
+#endif
     errno = result;
     return posix_error();
 }
