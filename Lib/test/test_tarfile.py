@@ -2466,9 +2466,13 @@ def root_is_uid_gid_0():
         import pwd, grp
     except ImportError:
         return False
-    if pwd.getpwuid(0)[0] != 'root':
-        return False
-    if grp.getgrgid(0)[0] != 'root':
+    try:
+        if pwd.getpwuid(0)[0] != 'root':
+            return False
+        if grp.getgrgid(0)[0] != 'root':
+            return False
+    except KeyError:
+        # Not all platforms necessarily have a UID=0
         return False
     return True
 
