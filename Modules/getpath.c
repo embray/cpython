@@ -101,8 +101,9 @@
 #endif
 
 
-#if !defined(PREFIX) || !defined(EXEC_PREFIX) || !defined(VERSION) || !defined(VPATH)
-#error "PREFIX, EXEC_PREFIX, VERSION, and VPATH must be constant defined"
+#if !defined(PREFIX) || !defined(EXEC_PREFIX) || !defined(VERSION) || \
+    !defined(VPATH) || !defined(EXE_SUFFIX)
+#error "PREFIX, EXEC_PREFIX, VERSION, VPATH, and EXE_SUFFIX must be constant defined"
 #endif
 
 #ifndef LANDMARK
@@ -258,6 +259,42 @@ absolutize(wchar_t *path)
     wcscpy(path, buffer);
 }
 
+
+/* add_exe_suffix requires that progpath be allocated at least
+   MAXPATHLEN + 1 bytes.
+*/
+static void
+add_exe_suffix(wchar_t *progpath)
+{
+    wchar_t *_suffix = Py_DecodeLocale(EXE_SUFFIX, NULL);
+    if (_suffix == NULL) {
+        Py_FatalError("Unable to decode suffix variables in getpath.c: "
+                      "memory error");
+    }
+
+    /* Check for already have an executable suffix */
+    size_t n = wcslen(progpath);
+    size_t s = wcslen(_suffix);
+    if (wcsncasecmp(_suffix, progpath+n-s, s) != 0) {
+        if (n + s > MAXPATHLEN) {
+            Py_FatalError("progpath overflow in getpath.c's add_exe_suffix()");
+        }
+        /* Save original path for revert */
+        wchar_t orig[MAXPATHLEN+1];
+        wcsncpy(orig, progpath, MAXPATHLEN);
+
+        wcsncpy(progpath+n, _suffix, s);
+        progpath[n+s] = '\0';
+
+        if (!isxfile(progpath)) {
+            /* Path that added suffix is invalid */
+            wcsncpy(progpath, orig, MAXPATHLEN);
+        }
+    }
+    PyMem_RawFree(_suffix);
+}
+
+
 /* search for a prefix value in an environment file. If found, copy it
    to the provided buffer, which is expected to be no more than MAXPATHLEN
    bytes long.
@@ -377,25 +414,6 @@ search_for_prefix(wchar_t *argv0_path, wchar_t *home, wchar_t *_prefix,
     return 0;
 }
 
-
-#ifdef __CYGWIN__
-
-static void
-add_exe_suffix(wchar_t *progpath)
-{
-    wchar_t *suffix_start;
-
-    suffix_start = progpath + wcslen(progpath) - wcslen(EXE_SUFFIX);
-
-    /* Already have an .exe suffix */
-    if (wcsncasecmp(EXE_SUFFIX, suffix_start, wcslen(EXE_SUFFIX)) == 0) {
-        return;
-    }
-
-    wcscat(progpath, EXE_SUFFIX);
-}
-
-#endif /* __CYGWIN__ */
 
 
 /* search_for_exec_prefix requires that argv0_path be no more than
@@ -538,9 +556,6 @@ calculate_path(void)
      */
     if (wcschr(prog, SEP)) {
         wcsncpy(progpath, prog, MAXPATHLEN);
-#ifdef __CYGWIN__
-        add_exe_suffix(progpath);
-#endif
 #ifdef __APPLE__
      /* On Mac OS X, if a script uses an interpreter of the form
       * "#!/opt/python2.3/bin/python", the kernel only passes "python"
@@ -575,9 +590,6 @@ calculate_path(void)
                 wcsncpy(progpath, path, MAXPATHLEN);
 
             joinpath(progpath, prog);
-#ifdef __CYGWIN__
-            add_exe_suffix(progpath);
-#endif
             if (isxfile(progpath))
                 break;
 
@@ -594,9 +606,8 @@ calculate_path(void)
     if (progpath[0] != SEP && progpath[0] != '\0')
         absolutize(progpath);
 
-#ifdef __CYGWIN__
-    add_exe_suffix(progpath);
-#endif
+    if (EXE_SUFFIX[0] != '\0' && progpath[0] != '\0')
+        add_exe_suffix(progpath);
 
     wcsncpy(argv0_path, progpath, MAXPATHLEN);
     argv0_path[MAXPATHLEN] = '\0';

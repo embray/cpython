@@ -283,6 +283,10 @@ always available.
    the real path to its executable, :data:`sys.executable` will be an empty string
    or ``None``.
 
+   .. versionchanged:: 3.7
+      Included executable suffix to path, if one is defined for the
+      platform.
+
 
 .. function:: exit([arg])
 
