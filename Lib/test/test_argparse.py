@@ -1571,7 +1571,12 @@ class TestFileTypeW(TempDirMixin, ParserTestCase):
         Sig('-x', type=argparse.FileType('w')),
         Sig('spam', type=argparse.FileType('w')),
     ]
-    failures = ['-x', '', 'readonly']
+    if sys.platform == 'cygwin':
+        # Read only permission can't be guaranteed on Cygwin depending on
+        # permission handling settings
+        failures = []
+    else:
+        failures = ['-x', '', 'readonly']
     successes = [
         ('foo', NS(x=None, spam=WFile('foo'))),
         ('-x foo bar', NS(x=WFile('foo'), spam=WFile('bar'))),
